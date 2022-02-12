@@ -1,56 +1,77 @@
 package databasegui;
 
-import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 import java.awt.Color;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JTextField;
-import javax.swing.table.DefaultTableModel;
-
+import java.awt.EventQueue;
 import java.awt.Font;
-import javax.swing.JTable;
-import javax.swing.JScrollPane;
-import javax.swing.JButton;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.RowFilter;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 /**
  * 
- *
+ *The GUI aims to allow easy connection to an open-source relational database management system(MySQL).
+ *Linked buttons with database, JTable is implemented to display entries from database 
+ *and users are able to load data to the GUI
  * @author Tho Le
  * @version 1.3.1
  */
 public class Table {
 
-	private JFrame frame;
-	/** The text field */
+	private JFrame frmAdmin;
+	/** Text field components*/
 	private JTextField productIDField;
 	private JTextField quantityField;
 	private JTextField wholesaleCostField;
 	private JTextField salePriceField;
 	private JTextField supplierIDField;
+	private JPanel mainPanel = new JPanel();
 	
-	/** The item table */
-	private JTable table;
-	private DefaultTableModel tableModel;
+	/** Item table component */
+	
+	private JTable table= new JTable();
+	private DefaultTableModel tableModel= new DefaultTableModel();
 
-	/** Connection to database */
-	private Connection con;
+	/** Button components */
+	private JButton createButton = new JButton("Create");
+	private JButton updateButton = new JButton("Update");
+	private JButton deleteButton = new JButton("Delete");
+	private JButton clearButton = new JButton("Clear");
+	private JButton readButton = new JButton("Read");
+	private JButton connectButton = new JButton("Connect to database");
 	
+	/** Connection to database */
+	private Database db = new Database();
+	private JTextField searchField;
+	
+	
+	private int x,y;
 	/**
 	 * Launch the application.
 	 */
@@ -59,7 +80,7 @@ public class Table {
 			public void run() {
 				try {
 					Table window = new Table();
-					window.frame.setVisible(true);
+					window.frmAdmin.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -79,76 +100,62 @@ public class Table {
 	 */
 	private void initialize() {
 		
-		frame = new JFrame();
-		frame.setBounds(100, 100, 1057, 738);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.getContentPane().setLayout(null);
-		frame.setJMenuBar(createMenuBar());
-		JPanel panel = new JPanel();
-		panel.setBackground(Color.GRAY);
-		panel.setBounds(0, 0, 1041, 698);
-		frame.getContentPane().add(panel);
-		panel.setLayout(null);
+		frmAdmin = new JFrame();
+		frmAdmin.setBounds(100, 100, 1137, 795);
+		frmAdmin.getContentPane().setLayout(null);//set layout to absolute
+		frmAdmin.setUndecorated(true);//remove default title bar
 		
-		JLabel productIDLabel = new JLabel("Product ID: ");
-		productIDLabel.setFont(new Font("Tahoma", Font.BOLD, 12));
-		productIDLabel.setBounds(32, 24, 75, 15);
-		panel.add(productIDLabel);
+		mainPanel.setBackground(new Color(255, 240, 245));
+		mainPanel.setBounds(0, 0, 1136, 795);
+		frmAdmin.getContentPane().add(mainPanel);
+		mainPanel.setLayout(null);
 		
-		JLabel quantityLabel = new JLabel("Quantity: ");
-		quantityLabel.setFont(new Font("Tahoma", Font.BOLD, 12));
-		quantityLabel.setBounds(236, 24, 62, 15);
-		panel.add(quantityLabel);
+		//Call methods implemented to add basic components to gui
+		addLabelComponents();
+		addFieldComponents();
 		
-		productIDField = new JTextField();
-		productIDField.setBounds(122, 21, 86, 20);
-		panel.add(productIDField);
-		productIDField.setColumns(10);
-		
-		quantityField = new JTextField();
-		quantityField.setBounds(308, 22, 86, 20);
-		panel.add(quantityField);
-		quantityField.setColumns(10);
-		
-		JLabel wholesaleCostLabel = new JLabel("Wholesale Cost: ");
-		wholesaleCostLabel.setFont(new Font("Tahoma", Font.BOLD, 12));
-		wholesaleCostLabel.setBounds(430, 24, 101, 15);
-		panel.add(wholesaleCostLabel);
-		
-		wholesaleCostField = new JTextField();
-		wholesaleCostField.setBounds(541, 22, 86, 20);
-		panel.add(wholesaleCostField);
-		wholesaleCostField.setColumns(10);
-		
-		JLabel salePriceLabel = new JLabel("Sale Price: ");
-		salePriceLabel.setFont(new Font("Tahoma", Font.BOLD, 12));
-		salePriceLabel.setBounds(646, 24, 66, 15);
-		panel.add(salePriceLabel);
-		
-		salePriceField = new JTextField();
-		salePriceField.setBounds(722, 22, 86, 20);
-		panel.add(salePriceField);
-		salePriceField.setColumns(10);
-		
-		JLabel supplierIDLabel = new JLabel("Supplier ID: ");
-		supplierIDLabel.setFont(new Font("Tahoma", Font.BOLD, 12));
-		supplierIDLabel.setBounds(840, 24, 76, 15);
-		panel.add(supplierIDLabel);
-		
-		supplierIDField = new JTextField();
-		supplierIDField.setBounds(926, 22, 86, 20);
-		panel.add(supplierIDField);
-		supplierIDField.setColumns(10);
-		
+		//Add scrolling functionality to table
 		JScrollPane table_scrollPane = new JScrollPane();
-		table_scrollPane.setBounds(32, 50, 980, 569);
-		panel.add(table_scrollPane);
+		table_scrollPane.setBounds(29, 77, 1081, 638);
+		mainPanel.add(table_scrollPane);
 		
+		//Add custom title bar
+		JPanel titlePanel = new JPanel();
 		
-		table = new JTable();
+		//Add draggable functionality on title bar when mouse is clicked and hold
+		titlePanel.addMouseMotionListener(new MouseMotionAdapter() {
+			public void mouseDragged(MouseEvent e) {
+				int xx = e.getXOnScreen();
+				int yy = e.getYOnScreen();
+				frmAdmin.setLocation(xx-x,yy-y);
+			}
+		});
+		titlePanel.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				x=e.getX();
+				y= e.getY();
+			}
+		});
+		titlePanel.setBackground(new Color(139, 0, 139));
+		titlePanel.setBounds(0, 0, 1136, 29);
+		mainPanel.add(titlePanel);
+		titlePanel.setLayout(null);
+		
+		// Custom close label to exit the gui
+		JLabel closeLabel = new JLabel("");
+		closeLabel.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				System.exit(0);
+			}
+		});
+		closeLabel.setBounds(1111, 7, 20, 20);
+		titlePanel.add(closeLabel);
+		closeLabel.setIcon(new ImageIcon("C:\\Users\\thole\\Desktop\\Java\\LA for CS1050\\databasegui\\src\\Close_icon_20x20.png"));
+		
+		//When user clicked on a row, the information will be input to the textfield to change
 		table.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
-				//When user clicked on a row, the information will be input to the textfield to change
+				
 				int i = table.getSelectedRow();
 				productIDField.setText(tableModel.getValueAt(i,0).toString());
 				quantityField.setText(tableModel.getValueAt(i,1).toString());
@@ -157,7 +164,9 @@ public class Table {
 				supplierIDField.setText(tableModel.getValueAt(i,4).toString());
 			}
 		});
-		table.setBackground(new Color(240, 255, 240));
+		
+		
+		table.setBackground(new Color(230, 230, 250));
 		table_scrollPane.setViewportView(table);
 		tableModel = new DefaultTableModel();
 		Object [] column = {"Product ID", "Quantity", "Wholesale Cost", "Sale Price", "Supplier ID"};
@@ -167,40 +176,20 @@ public class Table {
 		
 		
 		
-		//-----------------------------Create Button and Functionalities--------------------------------
-		
-		JButton createButton = new JButton("Create");
-		
+		//-----------------------------Add Button and Functionalities--------------------------------
+		addButtonComponents();
+	
 		//when the Create button is clicked, item is added to table and datase
 		//no check for duplication
 		createButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				
-				try {
-					//Add item to database
-			        con = DriverManager.getConnection("jdbc:mysql://localhost:3306/demo","student","student");
-			        String sql = "INSERT INTO inventory_team1 (Product_ID, Quantity, Wholesale_Cost, Sale_Price, Supplier_ID)" + "VALUES (?, ?, ?, ?, ?)";
-			        PreparedStatement statement = con.prepareStatement(sql);
-
-			        statement.setString(1, productIDField.getText());
-			        statement.setInt(2, Integer.parseInt(quantityField.getText()));
-			        statement.setDouble(3, Double.parseDouble(wholesaleCostField.getText()));
-			        statement.setDouble(4, Double.parseDouble(salePriceField.getText()));
-			        statement.setString(5, supplierIDField.getText());
-
-			        int rows = statement.executeUpdate();
-
-			        if (rows > 0) {
-			            System.out.println("A new item has been added to the inventory successfully.");
-			        }
-			      
-			        con.close();
 			        //check for empty input
 					if(productIDField.getText().equals("") || quantityField.getText().equals("") || wholesaleCostField.getText().equals("") 
 							|| salePriceField.getText().equals("") || supplierIDField.getText().equals("") ) {
 						JOptionPane.showMessageDialog(null,"Please fill complete information");
 					}
 					else {		
+						db.Insert(productIDField.getText(), Integer.parseInt(quantityField.getText()), Float.parseFloat(wholesaleCostField.getText()), Float.parseFloat(salePriceField.getText()), supplierIDField.getText());
 						//Add item to table	
 						row[0]= productIDField.getText();
 						row[1] = quantityField.getText();
@@ -208,25 +197,16 @@ public class Table {
 						row[3] = salePriceField.getText();
 						row[4]= supplierIDField.getText();
 						tableModel.addRow(row);
+						
+						JOptionPane.showMessageDialog(null,"Item with the Product ID: "+ productIDField.getText() +" has been successfully added");
 						clearField();
-						JOptionPane.showMessageDialog(null,"Successfully Added");
 					}
 			    }
-			    catch (SQLException e) {
-			        e.printStackTrace();
-			    }
-				
-			}
-			
 		});
-		createButton.setBounds(57, 631, 89, 23);
-		panel.add(createButton);
 		
-		JButton updateButton = new JButton("Update");
 		//when the Update button is clicked, item's quantity,wholesale cost, and sale price is updated
 		updateButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				try {
 					int i = table.getSelectedRow();
 					if(i>=0) {
 						//Update item on table
@@ -235,94 +215,47 @@ public class Table {
 						tableModel.setValueAt(wholesaleCostField.getText(), i, 2);
 						tableModel.setValueAt(salePriceField.getText(), i, 3);
 						tableModel.setValueAt(supplierIDField.getText(), i, 4);
-						JOptionPane.showMessageDialog(null,"Successfully Updated");
+						JOptionPane.showMessageDialog(null,"Item with the Product ID: "+ productIDField.getText() +" has been successfully updated");
 						
 						//Update item in database
-						con = DriverManager.getConnection("jdbc:mysql://localhost:3306/demo","student","student");
-			            String sql = "UPDATE inventory_team1 SET quantity=?, wholesale_cost=?, sale_price=? WHERE product_id='"+ productIDField.getText()+"'";
-			            PreparedStatement statement = con.prepareStatement(sql);
-			            statement.setInt(1, Integer.parseInt(quantityField.getText()));
-			            statement.setDouble(2, Double.parseDouble(wholesaleCostField.getText()));
-			            statement.setDouble(3, Double.parseDouble(salePriceField.getText()));
-
-			            int rows = statement.executeUpdate();
-
-			            if (rows > 0) {
-			                System.out.println("The item's information has been updated.");
-			            }
-			            con.close();
+						db.Update(productIDField.getText(), Integer.parseInt(quantityField.getText()), Float.parseFloat(wholesaleCostField.getText()), Float.parseFloat(salePriceField.getText()));
 					}
 					else {
 						JOptionPane.showMessageDialog(null,"Please Select an Item First");
 					}
-		            
-		        }
-		        catch (SQLException e) {
-		            e.printStackTrace();
-		        }
-				
-				
 			}
 		});
-		updateButton.setBounds(255, 630, 89, 23);
-		panel.add(updateButton);
-		
-		JButton deleteButton = new JButton("Delete");
 		
 		//when the Delete button is clicked, the item(row) is deleted
 		deleteButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				try {
 					int i = table.getSelectedRow();
 					if (i >=0) {
 						//Delete item from table
 						tableModel.removeRow(i);
 						//Delelte item from database
-						con = DriverManager.getConnection("jdbc:mysql://localhost:3306/demo","student","student");
-			            String sql = "DELETE FROM inventory_team1 WHERE product_id='"+productIDField.getText()+"'";
-			            PreparedStatement statement = con.prepareStatement(sql);
-
-			            int rows = statement.executeUpdate();
-
-			            if (rows > 0) {
-			                System.out.println("The item's information has been deleted.");
-			            }
-			            con.close();
+						db.Delete(productIDField.getText());
 						JOptionPane.showMessageDialog(null,"Selected item deleted");
-						
 					}
 					else
 						JOptionPane.showMessageDialog(null,"Please select a row to be deleted");
-				
-		        }
-		        catch (SQLException e) {
-		            e.printStackTrace();
-		        }
-		}
-				
-		});
-		deleteButton.setBounds(354, 631, 89, 23);
-		panel.add(deleteButton);
-		
-		JButton clearButton = new JButton("Clear");
-		clearButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				
-				clearField();
-				
 			}
 		});
-		clearButton.setBounds(453, 630, 89, 23);
-		panel.add(clearButton);
-		
-		JButton connectButton = new JButton("Connect to database");
+	
+		//when the Clear buttonm is clicked, the informations in text fields are cleared
+		clearButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				clearField();
+			}
+		});
 		
 		//When the Connect button is clicked, load items from database to table
 		connectButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+
 				try {
 					//Load items from database
-					con = DriverManager.getConnection("jdbc:mysql://localhost:3306/demo","student","student");
+					Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/demo","student","student");
 					String sql= "select product_id, quantity, wholesale_cost, sale_price, supplier_id from demo.inventory_team1 order by product_id";
 					Statement selectStatement = con.createStatement();
 					ResultSet results = selectStatement.executeQuery(sql);
@@ -337,19 +270,14 @@ public class Table {
 					}
 					 con.close();
 				}
-		        
 		        catch (SQLException ev) {
 		            ev.printStackTrace();
 		        }
 			}
 		});
-		connectButton.setBounds(887, 631, 89, 23);
-		panel.add(connectButton);
-		
-		JButton searchButton = new JButton("Read");
 		
 		//When the Read button is clicked, load item with given product id from database to table
-		searchButton.addActionListener(new ActionListener() {
+		readButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				 try {
 					 	if(productIDField.getText().equals("")) {
@@ -357,7 +285,7 @@ public class Table {
 					 	}
 					 	else {
 					 		//Load item with specifed product id to table
-					 		con = DriverManager.getConnection("jdbc:mysql://localhost:3306/demo","student","student");
+					 		Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/demo","student","student");
 					 		String sql = "SELECT * FROM inventory_team1 WHERE product_id=" + "'" + productIDField.getText() + "'";
 					 		PreparedStatement statement = con.prepareStatement(sql);
 					 		ResultSet result = statement.executeQuery(sql);
@@ -376,36 +304,135 @@ public class Table {
 			        catch (SQLException e) {
 			            e.printStackTrace();
 			        }
-				
+			}
+		});	
+	}
+	/**
+     * Diplay labels for text field which allow users to know what information they're entering
+     */
+	private void addLabelComponents() {
+		
+		JLabel productIDLabel = new JLabel("Product ID: ");
+		productIDLabel.setFont(new Font("Tahoma", Font.BOLD, 12));
+		productIDLabel.setBounds(66, 48, 75, 15);
+		mainPanel.add(productIDLabel);
+		
+		JLabel quantityLabel = new JLabel("Quantity: ");
+		quantityLabel.setFont(new Font("Tahoma", Font.BOLD, 12));
+		quantityLabel.setBounds(289, 48, 62, 15);
+		mainPanel.add(quantityLabel);
+		
+		JLabel wholesaleCostLabel = new JLabel("Wholesale Cost: ");
+		wholesaleCostLabel.setFont(new Font("Tahoma", Font.BOLD, 12));
+		wholesaleCostLabel.setBounds(483, 48, 101, 15);
+		mainPanel.add(wholesaleCostLabel);
+		
+		JLabel salePriceLabel = new JLabel("Sale Price: ");
+		salePriceLabel.setFont(new Font("Tahoma", Font.BOLD, 12));
+		salePriceLabel.setBounds(699, 48, 66, 15);
+		mainPanel.add(salePriceLabel);
+		
+		JLabel supplierIDLabel = new JLabel("Supplier ID: ");
+		supplierIDLabel.setFont(new Font("Tahoma", Font.BOLD, 12));
+		supplierIDLabel.setBounds(893, 48, 76, 15);
+		mainPanel.add(supplierIDLabel);
+		
+		JLabel searchLabel = new JLabel("Enter Product ID:");
+		searchLabel.setFont(new Font("Tahoma", Font.BOLD, 12));
+		searchLabel.setBounds(624, 751, 108, 15);
+		mainPanel.add(searchLabel);
+		
+		JLabel lblNewLabel = new JLabel("Search:");
+		lblNewLabel.setFont(new Font("Tahoma", Font.BOLD, 13));
+		lblNewLabel.setForeground(new Color(0, 0, 0));
+		lblNewLabel.setBounds(806, 723, 50, 16);
+		mainPanel.add(lblNewLabel);
+	}
+	
+	/**
+     * Diplay text field components that accepts user's inputs
+     */
+	private void addFieldComponents() {
+		
+		productIDField = new JTextField();
+		productIDField.setBounds(151, 45, 125, 20);
+		productIDField.setColumns(10);
+		mainPanel.add(productIDField);
+		
+		quantityField = new JTextField();
+		quantityField.setBounds(361, 46, 87, 20);
+		quantityField.setColumns(10);
+		mainPanel.add(quantityField);
+		
+		wholesaleCostField = new JTextField();
+		wholesaleCostField.setBounds(594, 46, 86, 20);
+		wholesaleCostField.setColumns(10);
+		mainPanel.add(wholesaleCostField);
+		
+		salePriceField = new JTextField();
+		salePriceField.setBounds(775, 46, 86, 20);
+		salePriceField.setColumns(10);
+		mainPanel.add(salePriceField);
+		
+		supplierIDField = new JTextField();
+		supplierIDField.setBounds(979, 46, 106, 20);
+		supplierIDField.setColumns(10);
+		mainPanel.add(supplierIDField);
+		
+		searchField = new JTextField();
+		searchField.addKeyListener(new KeyAdapter() {
+			public void keyReleased(KeyEvent e) {
+				String search = searchField.getText();
+				searchBar(search);
 			}
 		});
-		searchButton.setBounds(156, 631, 89, 23);
-		panel.add(searchButton);
-		
+		searchField.setBounds(742, 745, 175, 28);
+		mainPanel.add(searchField);
+		searchField.setColumns(10);
 	}
-	 /**
-     * Create Menu Bar
+
+	/**
+     * Diplay button components to implement C.R.U.D operations
      */
-	private JMenuBar createMenuBar() {
-		JMenuBar menuBar = new JMenuBar();
-		JMenu windowMenu = new JMenu("Window");
+	private void addButtonComponents() {
+		createButton.setFont(new Font("Tahoma", Font.BOLD, 12));
+		createButton.setIcon(new ImageIcon("C:\\Users\\thole\\Desktop\\Java\\LA for CS1050\\databasegui\\src\\Create_icon_20x20.png"));
+		createButton.setBounds(66, 725, 106, 39);
+		mainPanel.add(createButton);
 		
-		JMenu fileMenu = new JMenu("File");
-		JMenuItem exportData = new JMenuItem("Export Data....");
-		JMenuItem importData = new JMenuItem("Import Data....");
-		JMenuItem exit = new JMenuItem("Exit");
+		readButton.setIcon(new ImageIcon("C:\\Users\\thole\\Desktop\\Java\\LA for CS1050\\databasegui\\src\\Read_icon_20x20.png"));
+		readButton.setFont(new Font("Tahoma", Font.BOLD, 12));
+		readButton.setBounds(180, 725, 106, 39);
+		mainPanel.add(readButton);
 		
-		fileMenu.add(exportData);
-		fileMenu.add(importData);
-		fileMenu.addSeparator();
-		fileMenu.add(exit);
+		updateButton.setIcon(new ImageIcon("C:\\Users\\thole\\Desktop\\Java\\LA for CS1050\\databasegui\\src\\Update_icon_20x20.png"));
+		updateButton.setFont(new Font("Tahoma", Font.BOLD, 12));
+		updateButton.setBounds(292, 725, 106, 39);
+		mainPanel.add(updateButton);
 		
+		deleteButton.setIcon(new ImageIcon("C:\\Users\\thole\\Desktop\\Java\\LA for CS1050\\databasegui\\src\\Delete_icon_20x20.png"));
+		deleteButton.setFont(new Font("Tahoma", Font.BOLD, 12));
+		deleteButton.setBounds(403, 725, 106, 39);
+		mainPanel.add(deleteButton);
 		
+		clearButton.setIcon(new ImageIcon("C:\\Users\\thole\\Desktop\\Java\\LA for CS1050\\databasegui\\src\\Clear_icon_20x20.png"));
+		clearButton.setFont(new Font("Tahoma", Font.BOLD, 12));
+		clearButton.setBounds(514, 725, 106, 39);
+		mainPanel.add(clearButton);
 		
-		menuBar.add(fileMenu);
-		menuBar.add(windowMenu);
-		
-		return menuBar;
+		connectButton.setBounds(940, 726, 133, 39);
+		mainPanel.add(connectButton);
+	}
+
+	/**
+     * Implement search bar function to accept user input to be searched for in the database 
+     */
+	
+	private void searchBar(String str) {
+		tableModel= (DefaultTableModel)table.getModel();
+		TableRowSorter<DefaultTableModel> trs = new TableRowSorter<>(tableModel);
+		table.setRowSorter(trs);
+		trs.setRowFilter(RowFilter.regexFilter(str));
 	}
 	 /**
      * Clear all contents in text fields
