@@ -1,6 +1,5 @@
 import java.util.HashMap;
 /**
- * 
  * @author Matthew White
  *class ID and Passwords holds a hashmap of username / password key value pairs. This is called in the constructor of LoginPage for user authentication.
  *HashMap was selected because it does not allow duplicate keys, and allows most data types.
@@ -14,6 +13,8 @@ public class UserInfo {
 		logininfo.put("Matthew", "m2022");
 		logininfo.put("Le","l2022" );
 		logininfo.put("Seth", "s2022");
+		logininfo.put("Brian", "b2022");
+		logininfo.put("Cameron", "c2022");
 
 	}
 	

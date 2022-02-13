@@ -1,5 +1,3 @@
-package databasegui;
-
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -16,7 +14,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -44,7 +41,7 @@ import javax.swing.table.TableRowSorter;
  */
 public class Table {
 
-	private JFrame frmAdmin;
+	JFrame frmAdmin;
 	/** Text field components*/
 	private JTextField productIDField;
 	private JTextField quantityField;
@@ -75,18 +72,9 @@ public class Table {
 	/**
 	 * Launch the application.
 	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					Table window = new Table();
-					window.frmAdmin.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+	//public static void main(String[] args) {
+
+	//}
 
 	/**
 	 * Create the application.
