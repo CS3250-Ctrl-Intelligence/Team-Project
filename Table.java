@@ -223,7 +223,7 @@ public class Table {
 						tableModel.removeRow(i);
 						//Delelte item from database
 						db.Delete(productIDField.getText());
-						JOptionPane.showMessageDialog(null,"Selected item deleted");
+						JOptionPane.showMessageDialog(null,"Item with the Product ID: "+ productIDField.getText() +" has been successfully d");
 					}
 					else
 						JOptionPane.showMessageDialog(null,"Please select a row to be deleted");
@@ -241,10 +241,12 @@ public class Table {
 		connectButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 
+				db.importCSV();
+
 				try {
 					//Load items from database
-					Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/demo","student","student");
-					String sql= "select product_id, quantity, wholesale_cost, sale_price, supplier_id from demo.inventory_team1 order by product_id";
+					Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/Inventory","root","password");
+					String sql= "select * from Inventory.items order by product_id";
 					Statement selectStatement = con.createStatement();
 					ResultSet results = selectStatement.executeQuery(sql);
 					
@@ -267,33 +269,16 @@ public class Table {
 		//When the Read button is clicked, load item with given product id from database to table
 		readButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				 try {
-					 	if(productIDField.getText().equals("")) {
-					 		JOptionPane.showMessageDialog(null,"Please fill complete information");
-					 	}
-					 	else {
-					 		//Load item with specifed product id to table
-					 		Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/demo","student","student");
-					 		String sql = "SELECT * FROM inventory_team1 WHERE product_id=" + "'" + productIDField.getText() + "'";
-					 		PreparedStatement statement = con.prepareStatement(sql);
-					 		ResultSet result = statement.executeQuery(sql);
-					 		
-					 		while (result.next()) {
-					 			row[0]= result.getString("product_id");
-					 			row[1] = result.getInt("quantity");
-					 			row[2]= result.getDouble("wholesale_cost");
-					 			row[3] = result.getDouble("sale_price");
-					 			row[4]= result.getString("supplier_id");
-					 			tableModel.addRow(row);
-					 		}
-					 		con.close();					 		
-					 	}
-			        }
-			        catch (SQLException e) {
-			            e.printStackTrace();
-			        }
-			}
-		});	
+				if(productIDField.getText().equals("")) {
+					JOptionPane.showMessageDialog(null,"Please fill complete information");
+				}
+				else {
+					//Load item with specifed product id to table
+					tableModel.addRow(db.Read(productIDField.getText()));
+					searchBar(productIDField.getText());
+				}
+   }
+});
 	}
 	/**
      * Diplay labels for text field which allow users to know what information they're entering
@@ -384,26 +369,26 @@ public class Table {
      */
 	private void addButtonComponents() {
 		createButton.setFont(new Font("Tahoma", Font.BOLD, 12));
-		createButton.setIcon(new ImageIcon("C:\\Users\\thole\\Desktop\\Java\\LA for CS1050\\databasegui\\src\\Create_icon_20x20.png"));
+		createButton.setIcon(new ImageIcon("C:\\Users\\brian\\OneDrive\\Desktop\\Create_icon_20x20.png")); // Adds Create image to Create button
 		createButton.setBounds(66, 725, 106, 39);
 		mainPanel.add(createButton);
 		
-		readButton.setIcon(new ImageIcon("C:\\Users\\thole\\Desktop\\Java\\LA for CS1050\\databasegui\\src\\Read_icon_20x20.png"));
+		readButton.setIcon(new ImageIcon("C:\\Users\\brian\\OneDrive\\Desktop\\Read_icon_20x20.png"));     // Adds Read image to Read button
 		readButton.setFont(new Font("Tahoma", Font.BOLD, 12));
 		readButton.setBounds(180, 725, 106, 39);
 		mainPanel.add(readButton);
 		
-		updateButton.setIcon(new ImageIcon("C:\\Users\\thole\\Desktop\\Java\\LA for CS1050\\databasegui\\src\\Update_icon_20x20.png"));
+		updateButton.setIcon(new ImageIcon("C:\\Users\\brian\\OneDrive\\Desktop\\Update_icon_20x20.png")); // Adds Update image to Update button
 		updateButton.setFont(new Font("Tahoma", Font.BOLD, 12));
 		updateButton.setBounds(292, 725, 106, 39);
 		mainPanel.add(updateButton);
 		
-		deleteButton.setIcon(new ImageIcon("C:\\Users\\thole\\Desktop\\Java\\LA for CS1050\\databasegui\\src\\Delete_icon_20x20.png"));
+		deleteButton.setIcon(new ImageIcon("C:\\Users\\brian\\OneDrive\\Desktop\\Delete_icon_20x20.png")); // Adds Delete image to Delete button
 		deleteButton.setFont(new Font("Tahoma", Font.BOLD, 12));
 		deleteButton.setBounds(403, 725, 106, 39);
 		mainPanel.add(deleteButton);
 		
-		clearButton.setIcon(new ImageIcon("C:\\Users\\thole\\Desktop\\Java\\LA for CS1050\\databasegui\\src\\Clear_icon_20x20.png"));
+		clearButton.setIcon(new ImageIcon("C:\\Users\\brian\\OneDrive\\Desktop\\Clear_icon_20x20.png"));  // Adds Clear image to Clear button
 		clearButton.setFont(new Font("Tahoma", Font.BOLD, 12));
 		clearButton.setBounds(514, 725, 106, 39);
 		mainPanel.add(clearButton);

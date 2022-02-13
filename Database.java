@@ -2,6 +2,10 @@ import java.util.*;
 import java.sql.*;
 import java.io.*;
 
+/*
+This class creates a database using MySQL from an imported CSV file.
+It allows to Create, Read, Update, and Delete items directly from the database created. 
+*/
 public class Database {
 
     final String jdbc = "jdbc:mysql://localhost:3306/Inventory";   // Address to MySQL database
@@ -13,78 +17,39 @@ public class Database {
     
     public static void main(String[] args) {
         
-        Database testing = new Database();
-        testing.importCSV();
-        Scanner keyboard = new Scanner(System.in);
-
-        /* The below code is only use for testing the different functions using input from the user */
-
-        // Insert Method user prompts
-        System.out.println("Enter Product ID: ");
-        String userProduct = keyboard.nextLine();
-        System.out.println("Enter Quantity: ");
-        int userQty = keyboard.nextInt();
-        System.out.println("Enter Wholesale Cost: ");
-        float userWholesale = keyboard.nextFloat();
-        System.out.println("Enter Sale Price: ");
-        float userSale = keyboard.nextFloat();
-        keyboard.nextLine();
-        System.out.println("Enter Supplier ID: ");
-        String userSupplier = keyboard.nextLine();
-
-        Database test = new Database();
-        test.Insert(userProduct, userQty , userWholesale, userSale, userSupplier);
-        test.Retrieve();
-
-
-        //Retrieve Method user prompts
-        System.out.println("Enter Product ID: ");
-        String userProduct2 = keyboard.nextLine();
-        System.out.println("Enter Quantity: ");
-        int userQty2 = keyboard.nextInt();
-        System.out.println("Enter Wholesale Cost: ");
-        float userWholesale2 = keyboard.nextFloat();
-        System.out.println("Enter Sale Price: ");
-        float userSale2 = keyboard.nextFloat();
-
-        test.Update(userProduct2, userQty2, userWholesale2, userSale2);
-
-
-        // Delete Method user prompt
-        
-        keyboard.nextLine();
-        System.out.println("Enter Product ID: ");
-        String userProduct3 = keyboard.nextLine();
-        testing.Delete(userProduct3);
-        keyboard.close(); 
+        Database database = new Database();
+        database.importCSV();
     }
 
 
     // Method that imports a csv file into MySQL Database
     public void importCSV() {
 
-        String csvFilePath = "C:\\Users\\brian\\Documents\\College\\CS 3250\\Project\\inventory_team1.csv";
+        String csvFilePath = "C:\\Users\\brian\\Documents\\College\\CS 3250\\Project\\inventory_team1.csv";     // csv file address
         int batchSize = 20;
  
         try {
+            // Connect to database
             con = DriverManager.getConnection(jdbc ,dbUsername, dbPassword);
             con.setAutoCommit(false);
-            sql = "INSERT INTO Items (Product_ID, Quantity, Wholesale_Cost, Sale_Price, Supplier_ID)" + "VALUES (?, ?, ?, ?, ?)";
+            sql = "INSERT INTO Items (Product_ID, Quantity, Wholesale_Cost, Sale_Price, Supplier_ID)" + "VALUES (?, ?, ?, ?, ?)";   // SQL statement to insert data to database
             statement = con.prepareStatement(sql);
  
             BufferedReader lineReader = new BufferedReader(new FileReader(csvFilePath));
             String lineText = null;
             int count = 0;
             lineReader.readLine(); 
- 
+            
+            // Loops through CSV file line by line
             while ((lineText = lineReader.readLine()) != null) {
-                String[] data = lineText.split(",");
+                String[] data = lineText.split(",");                        // Split data by commas
                 String product_id= data[0];
                 int quantity = Integer.valueOf(data[1]);
                 float wholesale_cost = Float.valueOf(data[2]);
                 float sale_price = Float.valueOf(data[3]);
                 String supplier_id = data[4];
- 
+                
+                // Inserts each category to the database
                 statement.setString(1, product_id);
                 statement.setInt(2, quantity);
                 statement.setFloat(3, wholesale_cost);
@@ -112,14 +77,16 @@ public class Database {
     }
 
 
-    // This method adds a new item to the database. Input is from user.
+    // This method adds a new item to the database.
     public void Insert(String product_id, int qty, float wholesale_cost, float sale_price, String supplier_id) {
 
         try {
+            // Connect to database
             con = DriverManager.getConnection(jdbc ,dbUsername, dbPassword);
-            sql = "INSERT INTO Items (Product_ID, Quantity, Wholesale_Cost, Sale_Price, Supplier_ID)" + "VALUES (?, ?, ?, ?, ?)";
+            sql = "INSERT INTO Items (Product_ID, Quantity, Wholesale_Cost, Sale_Price, Supplier_ID)" + "VALUES (?, ?, ?, ?, ?)";   // SQL statement to insert data to database
             statement = con.prepareStatement(sql);
 
+            // Inserts each category into database to their respective categories
             statement.setString(1, product_id);
             statement.setInt(2, qty);
             statement.setFloat(3, wholesale_cost);
@@ -139,29 +106,34 @@ public class Database {
     }
 
 
-    // Method that displays the entirety of the database
-    public void Retrieve() {
+    /* This method allows for us to search the database by Product ID and Read the information tied with it.
+       Additionally, it returns a list of objects in order to implement these list into the GUI (Table.java). */
+    public Object [] Read(String product_id) {
+
+        Object [] row = new Object[5];      // List of objects to store the data retrieved by searching product ID
 
         try {
+            // Connect to the database
             con = DriverManager.getConnection(jdbc ,dbUsername, dbPassword);
-            sql = "SELECT * FROM Items";
+            sql = "SELECT * FROM Items WHERE Product_ID= '" + product_id + "'"; // SQL statement to perform the search in the database
             Statement statement = con.createStatement();
             ResultSet result = statement.executeQuery(sql);
 
+            // Adds each category result that matches with the product ID to the list of objects
             while (result.next()) {
-                String productID = result.getString("Product_ID");
-                int Quantity = result.getInt("Quantity");
-                float wholesale_cost= result.getFloat("Wholesale_Cost");
-                float sale_price = result.getFloat("Sale_Price");
-                String supplierID = result.getString("Supplier_ID");
-                
-                System.out.println(productID + ", " + Quantity + ", " + wholesale_cost + ", " + sale_price + ", " + supplierID);
+                row[0]= result.getString("product_id");
+                row[1] = result.getInt("quantity");
+                row[2]= result.getDouble("wholesale_cost");
+                row[3] = result.getDouble("sale_price");
+                row[4]= result.getString("supplier_id");
             }
             con.close();
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
+
+        return row;
     }
 
 
@@ -169,10 +141,12 @@ public class Database {
     public void Update(String product_id, int qty, float wholesale_cost, float sale_price) {
 
         try {
+            // Connect to database
             con = DriverManager.getConnection(jdbc ,dbUsername, dbPassword);
-            sql = "UPDATE Items SET Quantity=?, Wholesale_Cost=?, Sale_Price=? WHERE Product_ID=?";
+            sql = "UPDATE Items SET Quantity=?, Wholesale_Cost=?, Sale_Price=? WHERE Product_ID=?";     // SQL statement to update specified fields within the database
             statement = con.prepareStatement(sql);
 
+            // Inserts new data to the respective fields
             statement.setInt(1, qty);
             statement.setFloat(2, wholesale_cost);
             statement.setFloat(3, sale_price);
@@ -195,9 +169,12 @@ public class Database {
     public void Delete(String product_ID) {
 
         try {
+            // Connect to database
             con = DriverManager.getConnection(jdbc ,dbUsername, dbPassword);
-            sql = "DELETE FROM Items WHERE Product_ID=?";
+            sql = "DELETE FROM Items WHERE Product_ID=?";       // SQL statement to delete items from the database
             statement = con.prepareStatement(sql);
+
+            // Deletes entire row that matches this product ID
             statement.setString(1, product_ID);
 
             int rows = statement.executeUpdate();
