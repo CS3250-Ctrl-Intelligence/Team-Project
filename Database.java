@@ -1,4 +1,4 @@
-import java.util.*;
+//import java.util.*;
 import java.sql.*;
 import java.io.*;
 
@@ -25,7 +25,7 @@ public class Database {
     // Method that imports a csv file into MySQL Database
     public void importCSV() {
 
-        String csvFilePath = "C:\\Users\\brian\\Documents\\College\\CS 3250\\Project\\inventory_team1.csv";     // csv file address
+        String csvFilePath = "C:\\Users\\brian\\Documents\\College\\CS 3250\\Project\\inventory_team1.csv";     // the csv file address
         int batchSize = 20;
  
         try {
@@ -93,11 +93,9 @@ public class Database {
             statement.setFloat(4, sale_price);
             statement.setString(5, supplier_id);
 
-            int rows = statement.executeUpdate();
+            // Execute statements
+            statement.executeUpdate();
 
-            if (rows > 0) {
-                System.out.println("A new item has been added to the inventory successfully.");
-            }
             con.close();
         }
         catch (SQLException e) {
@@ -180,7 +178,7 @@ public class Database {
             int rows = statement.executeUpdate();
 
             if (rows > 0) {
-                System.out.println("The item's information has been deleted.");
+                System.out.println("lol");
             }
             con.close();
         }

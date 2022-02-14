@@ -10,7 +10,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -177,7 +176,7 @@ public class Table {
 						JOptionPane.showMessageDialog(null,"Please fill complete information");
 					}
 					else {		
-						db.Insert(productIDField.getText(), Integer.parseInt(quantityField.getText()), Float.parseFloat(wholesaleCostField.getText()), Float.parseFloat(salePriceField.getText()), supplierIDField.getText());
+						db.Insert(productIDField.getText(), Integer.parseInt(quantityField.getText()), Float.parseFloat(wholesaleCostField.getText()), Float.parseFloat(salePriceField.getText()), supplierIDField.getText());		//Calls Insert method from database class
 						//Add item to table	
 						row[0]= productIDField.getText();
 						row[1] = quantityField.getText();
@@ -206,10 +205,10 @@ public class Table {
 						JOptionPane.showMessageDialog(null,"Item with the Product ID: "+ productIDField.getText() +" has been successfully updated");
 						
 						//Update item in database
-						db.Update(productIDField.getText(), Integer.parseInt(quantityField.getText()), Float.parseFloat(wholesaleCostField.getText()), Float.parseFloat(salePriceField.getText()));
+						db.Update(productIDField.getText(), Integer.parseInt(quantityField.getText()), Float.parseFloat(wholesaleCostField.getText()), Float.parseFloat(salePriceField.getText()));		//Calls Update method from database class
 					}
 					else {
-						JOptionPane.showMessageDialog(null,"Please Select an Item First");
+						JOptionPane.showMessageDialog(null,"Please Select an Item first");
 					}
 			}
 		});
@@ -222,7 +221,7 @@ public class Table {
 						//Delete item from table
 						tableModel.removeRow(i);
 						//Delelte item from database
-						db.Delete(productIDField.getText());
+						db.Delete(productIDField.getText()); // calls Delete method from database class
 						JOptionPane.showMessageDialog(null,"Item with the Product ID: "+ productIDField.getText() +" has been successfully d");
 					}
 					else
@@ -241,7 +240,7 @@ public class Table {
 		connectButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 
-				db.importCSV();
+				db.importCSV(); // Calls import method from database.java to import csv
 
 				try {
 					//Load items from database
@@ -251,6 +250,7 @@ public class Table {
 					ResultSet results = selectStatement.executeQuery(sql);
 					
 					while(results.next()) {
+						//Add items to table
 				        row[0]= results.getString("product_id");
 						row[1] = results.getInt("quantity");
 						row[2]= results.getDouble("wholesale_cost");
@@ -274,7 +274,7 @@ public class Table {
 				}
 				else {
 					//Load item with specifed product id to table
-					tableModel.addRow(db.Read(productIDField.getText()));
+					tableModel.addRow(db.Read(productIDField.getText())); // calls Read method from database class and loads it to the table
 					searchBar(productIDField.getText());
 				}
    }
